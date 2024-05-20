@@ -10,7 +10,8 @@ const fileupload = require("express-fileupload");
 app.use(fileupload());
 
 //db connection
-require("./config/database").connect();
+const db = require("./config/database");
+db.connect();
 
 //cloud connection
 const cloudinary = require("./config/cloudinary");
