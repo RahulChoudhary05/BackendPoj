@@ -2,19 +2,23 @@ const express = require("express");
 const app = express();
 
 require("dotenv").config();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
-//cookie-parser
-const cookieParser = require("cookie-parser");
-app.use(cookieParser());
-
+//middleware
 app.use(express.json());
+const fileupload = require("express-fileupload");
+app.use(fileupload());
 
+//db connection
 require("./config/database").connect();
 
+//cloud connection
+const cloudinary = require("./config/cloudinary");
+cloudinary.cloudinaryConnect();
+
 //routes imort and mount
-const user = require("./routes/user");
-app.use("/api/v1", user);
+const Upload = require("./routes/FileUpload");
+app.use("/api/v1/upload", Upload);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
