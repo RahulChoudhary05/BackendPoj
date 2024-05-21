@@ -32,9 +32,12 @@ function isFileTypeSupported(type, supportedTypes) {
   return supportedTypes.includes(type);
 }
 
-async function uploadFileTocloudinary(file, folder) {
+async function uploadFileTocloudinary(file, folder, quality) {
   const options = { folder };
   console.log("Temp file path => ", file.tempFilePath);
+  if (quality) {
+    options.quality = quality;
+  }
   options.resource_type = "auto";
   return await cloudinary.uploader.upload(file.tempFilePath, options);
 }
@@ -119,13 +122,61 @@ exports.videoUpload = async (req, res) => {
       name,
       tags,
       email,
+      videoUrl: response.secure_url,
+    });
+
+    res.json({
+      successs: true,
+      videoUrl: response.secure_url,
+      message: "Video successfully uploaderd",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({
+      successs: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
+//imageSizeReducer - compress the image
+exports.imageSizeReducer = async (req, res) => {
+  try {
+    //data fetch
+    const { name, tags, email } = req.body;
+    console.log(name, tags, email);
+
+    const file = req.files.imageFile;
+    console.log("ImageFile => ", file);
+
+    //validation
+    const supportedTypes = ["jpg", "png", "jpeg "];
+    const fileType = file.name.split(".")[1].toLowerCase();
+    console.log("File type => ", fileType);
+
+    if (!isFileTypeSupported(fileType, supportedTypes)) {
+      return res.status(400).json({
+        successs: false,
+        message: "File format not supported",
+      });
+    }
+
+    //file format supported
+    const response = await uploadFileTocloudinary(file, "FileUpload", 20);
+    console.log(response);
+
+    //entery save in db
+    const fileData = await File.create({
+      name,
+      tags,
+      email,
       imageUrl: response.secure_url,
     });
 
     res.json({
       successs: true,
       imageUrl: response.secure_url,
-      message: "Video successfully uploaderd",
+      message: "Image successfully uploaderd",
     });
   } catch (error) {
     console.log(error);
